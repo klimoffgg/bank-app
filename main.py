@@ -62,9 +62,10 @@ def update_transaction(id:int, update_data:TransactionUpdateRequest):
                     detail="Нельзя вернуть в создание транзакцию, которая уже обрабатывается"
                 )
             transaction.status = update_data.status
+            return transaction
 
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail='Транзакция с id {id} не найдена'.format(id=id),
-        )
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail='Транзакция с id {id} не найдена'.format(id=id),
+    )
 
