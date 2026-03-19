@@ -69,3 +69,11 @@ def update_transaction(id:int, update_data:TransactionUpdateRequest):
         detail='Транзакция с id {id} не найдена'.format(id=id),
     )
 
+
+
+@app.get(
+    "/transactions",
+    response_model = list[TransactionResponse],
+)
+def get_transactions():
+    return trans
