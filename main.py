@@ -1,7 +1,3 @@
-from encodings.palmos import decoding_table
-from enum import Enum
-from http.client import responses
-
 from fastapi import FastAPI, status, HTTPException
 from pydantic import BaseModel
 from enum import Enum
