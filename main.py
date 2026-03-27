@@ -78,3 +78,16 @@ def api_get_trans(id: int, db: Session = Depends(get_db)):
             detail=f"Транзакция с id {id} не найдена"
         )
     return transaction1
+
+@app.delete(
+    '/transaction/{id}',
+    status_code = status.HTTP_204_NO_CONTENT,
+)
+def api_delete_trans(id: int, db: Session = Depends(get_db)):
+    db_trans = get_trans(db, trans_id=id)
+    if not db_trans:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail = f'Транзакция с id {id} не найдена'
+        )
+    delete_trans(db, db_trans = db_trans)
