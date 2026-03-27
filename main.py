@@ -38,26 +38,25 @@ def create_transaction(info:TransactionRequest, db: Session = Depends(get_db)):
     response_model = TransactionResponse,
     status_code = status.HTTP_200_OK,
 )
-def update_transaction(id:int, update_data:TransactionUpdateRequest):
-    for transaction in trans:
-        if transaction.id == id:
-            if transaction.status == TransactionStatus.ARCHIVE:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Архивную транзакцию нельзя изменить"
-                )
-            elif transaction.status == TransactionStatus.PROCESSING and update_data.status == TransactionStatus.DRAFT:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Нельзя вернуть в создание транзакцию, которая уже обрабатывается"
-                )
-            transaction.status = update_data.status
-            return transaction
+def api_update_transaction(id:int, update_data:TransactionUpdateRequest, db: Session = Depends(get_db)):
+    db_trans = get_trans(db, trans_id=id)
+    if not db_trans:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Транзакция с id {id} не найдена'.format(id=id),
+        )
+    if db_trans.status == TransactionStatus.ARCHIVE:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Архивную транзакцию нельзя изменить"
+        )
+    elif db_trans.status == TransactionStatus.PROCESSING and update_data.status == TransactionStatus.DRAFT:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Нельзя вернуть в создание транзакцию, которая уже обрабатывается"
+        )
+    return update_trans(db, db_trans = db_trans, new_status=update_data.status)
 
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail='Транзакция с id {id} не найдена'.format(id=id),
-    )
 
 
 
@@ -65,5 +64,17 @@ def update_transaction(id:int, update_data:TransactionUpdateRequest):
     "/transactions",
     response_model = list[TransactionResponse],
 )
-def get_transactions():
-    return trans
+def api_get_all_trans(db: Session = Depends(get_db)):
+    return get_all_trans(db)
+@app.get(
+    '/transaction/{id}',
+    response_model = TransactionResponse,
+)
+def api_get_trans(id: int, db: Session = Depends(get_db)):
+    transaction1 = get_trans(db, trans_id=id)
+    if not transaction1:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Транзакция с id {id} не найдена"
+        )
+    return transaction1
