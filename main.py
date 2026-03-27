@@ -1,14 +1,9 @@
-from fastapi import FastAPI, status, HTTPException
+from fastapi import FastAPI, status, HTTPException, Depends
 from pydantic import BaseModel
 from enum import Enum
+from sqlalchemy.orm import Session
+from data import get_db, create_trans, TransactionStatus, get_all_trans, get_trans, update_trans, delete_trans
 
-trans = []
-
-class TransactionStatus (str, Enum):
-    DRAFT = 'DRAFT'
-    PROCESSING = 'PROCESSING'
-    FROZEN = 'FROZEN'
-    ARCHIVE = 'ARCHIVE'
 class TransactionRequest(BaseModel):
     sender: str
     receiver: str
@@ -19,6 +14,7 @@ class TransactionResponse (BaseModel):
     amount: int
     status: TransactionStatus = TransactionStatus.DRAFT
     id: int
+    model_config = {"from_attributes": True}
 class TransactionUpdateRequest(BaseModel):
     status: TransactionStatus
 app = FastAPI()
@@ -27,15 +23,13 @@ app = FastAPI()
     response_model = TransactionResponse,
     status_code = status.HTTP_201_CREATED,
 )
-def create_transaction(info:TransactionRequest):
-    id = len(trans) + 1
-    transaction = TransactionResponse(
-        id = id,
+def create_transaction(info:TransactionRequest, db: Session = Depends(get_db)):
+    transaction = create_trans(
+        db = db,
         sender = info.sender,
         receiver = info.receiver,
         amount = info.amount,
     )
-    trans.append(transaction)
     return transaction
 
 
