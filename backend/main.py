@@ -1,8 +1,15 @@
 from fastapi import FastAPI, status, HTTPException, Depends
 from pydantic import BaseModel
-from enum import Enum
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from data import get_db, create_trans, TransactionStatus, get_all_trans, get_trans, update_trans, delete_trans
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class TransactionRequest(BaseModel):
     sender: str
@@ -34,7 +41,7 @@ def create_transaction(info:TransactionRequest, db: Session = Depends(get_db)):
 
 
 @app.patch(
-    '/transaction/{id}',
+    '/transactions/{id}',
     response_model = TransactionResponse,
     status_code = status.HTTP_200_OK,
 )
@@ -67,7 +74,7 @@ def api_update_transaction(id:int, update_data:TransactionUpdateRequest, db: Ses
 def api_get_all_trans(db: Session = Depends(get_db)):
     return get_all_trans(db)
 @app.get(
-    '/transaction/{id}',
+    '/transactions/{id}',
     response_model = TransactionResponse,
 )
 def api_get_trans(id: int, db: Session = Depends(get_db)):
@@ -80,7 +87,7 @@ def api_get_trans(id: int, db: Session = Depends(get_db)):
     return transaction1
 
 @app.delete(
-    '/transaction/{id}',
+    '/transactions/{id}',
     status_code = status.HTTP_204_NO_CONTENT,
 )
 def api_delete_trans(id: int, db: Session = Depends(get_db)):

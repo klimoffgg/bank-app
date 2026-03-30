@@ -179,10 +179,3 @@ tr:hover td {
 
 .btn-action.delete { color: var(--status-archive); }
 .btn-action.delete:hover { color: #B91C1C; text-decoration: underline; }
-
-/* Адаптивность для мобилок */
-@media (max-width: 768px) {
-    .dashboard {
-        grid-template-columns: 1fr;
-    }
-}
