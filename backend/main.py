@@ -19,7 +19,7 @@ class TransactionUpdateRequest(BaseModel):
     status: TransactionStatus
 app = FastAPI()
 @app.post(
-    '/transaction',
+    '/transactions',
     response_model = TransactionResponse,
     status_code = status.HTTP_201_CREATED,
 )
