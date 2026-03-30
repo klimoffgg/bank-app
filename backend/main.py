@@ -4,12 +4,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from data import get_db, create_trans, TransactionStatus, get_all_trans, get_trans, update_trans, delete_trans
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 class TransactionRequest(BaseModel):
     sender: str
@@ -25,6 +19,13 @@ class TransactionResponse (BaseModel):
 class TransactionUpdateRequest(BaseModel):
     status: TransactionStatus
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 @app.post(
     '/transactions',
     response_model = TransactionResponse,
