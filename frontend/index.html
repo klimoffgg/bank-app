@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель управления транзакциями</title>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Управление транзакциями</h1>
+            <p>Связка FastAPI + SQLite + TypeScript</p>
+        </header>
+
+        <main class="dashboard">
+            <section class="card form-section">
+                <h2>Новый перевод</h2>
+                <form id="transaction-form">
+                    <div class="form-group">
+                        <label for="sender">Отправитель</label>
+                        <input type="text" id="sender" placeholder="Например: Иван" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="receiver">Получатель</label>
+                        <input type="text" id="receiver" placeholder="Например: Петр" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="amount">Сумма (₽)</label>
+                        <input type="number" id="amount" placeholder="1000" min="1" required>
+                    </div>
+                    
+                    <button type="submit" class="btn-submit">Создать транзакцию</button>
+                </form>
+            </section>
+
+            <section class="card table-section">
+                <h2>История операций</h2>
+                <div class="table-responsive">
+                    <table id="transactions-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Отправитель</th>
+                                <th>Получатель</th>
+                                <th>Сумма</th>
+                                <th>Статус</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactions-body">
+                            <tr data-id="1">
+                                <td>1</td>
+                                <td>Иван</td>
+                                <td>Петр</td>
+                                <td>1000 ₽</td>
+                                <td><span class="badge badge-draft">DRAFT</span></td>
+                                <td class="actions">
+                                    <button class="btn-action edit">Изменить</button>
+                                    <button class="btn-action delete">Удалить</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script> 
+</body>
+</html>

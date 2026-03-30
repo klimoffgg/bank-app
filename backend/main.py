@@ -91,3 +91,8 @@ def api_delete_trans(id: int, db: Session = Depends(get_db)):
             detail = f'Транзакция с id {id} не найдена'
         )
     delete_trans(db, db_trans = db_trans)
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="localhost", port=8000)
