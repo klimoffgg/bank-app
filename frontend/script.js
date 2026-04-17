@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:8000';
+"use strict";
+const API_URL = '/api';
 async function createTransaction(sender, receiver, amount) {
     try {
         const response = await fetch(`${API_URL}/transactions`, {
@@ -146,3 +147,4 @@ window.handleEdit = async (id) => {
         }
     }
 };
+renderTable();

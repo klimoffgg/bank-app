@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:8000';
+const API_URL = '/api';
 
 interface Transaction {
     id: number;
@@ -170,3 +170,5 @@ form_HMLFormElement.addEventListener('submit', async (e):Promise<void> => {
         }
     }
 }
+
+renderTable()

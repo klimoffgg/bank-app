@@ -1,3 +1,5 @@
+from sys import prefix
+
 from fastapi import FastAPI, status, HTTPException, Depends
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
@@ -18,14 +20,8 @@ class TransactionResponse (BaseModel):
     model_config = {"from_attributes": True}
 class TransactionUpdateRequest(BaseModel):
     status: TransactionStatus
-app = FastAPI()
+app = FastAPI(root_path = '/api')
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 @app.post(
     '/transactions',
     response_model = TransactionResponse,
