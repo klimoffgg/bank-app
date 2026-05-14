@@ -1,11 +1,89 @@
+import os
 from sys import prefix
-
-from fastapi import FastAPI, status, HTTPException, Depends
+from datetime import datetime, timedelta, timezone
+from fastapi import FastAPI, status, HTTPException, Depends, security
+from fastapi.security import HTTPBearer
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from data import get_db, create_trans, TransactionStatus, get_all_trans, get_trans, update_trans, delete_trans
+from new_data import get_db, get_user_by_username, create_user, create_trans, get_all_trans, get_transaction_by_id, delete_trans, update_trans
+from dotenv import load_dotenv
+from jose import JWTError, jwt
 
+load_dotenv()
+
+RT_SECRET_KEY = os.getenv('RT_SECRET_KEY')
+AT_SECRET_KEY = os.getenv('AT_SECRET_KEY')
+
+class Tokens:
+    ALGORITHM = 'HS256'
+    REFRESH_TOKEN_EXPIRE_DAYS = 7
+    REFRESH_TOKEN_EXPIRE_TIMEDELTA = timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    ACCESS_TOKEN_EXPIRE_MINUTES = 15
+    ACCESS_TOKEN_EXPIRE_TIMEDELTA = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+
+    @classmethod
+    def encode(cls, payload: dict, sk: str) -> str:
+        return jwt.encode(payload, sk, algorithm=cls.ALGORITHM)
+    @classmethod
+    def decode (cls, token: str, sk: str) -> dict | None:
+        try:
+            return jwt.decode(token, sk, algorithms=[cls.ALGORITHM])
+        except JWTError as ex:
+            return None
+    @classmethod
+    def create_refresh_token(cls, user_id: int) -> str:
+        iat = datetime.now(timezone.utc)
+        exp = iat + cls.REFRESH_TOKEN_EXPIRE_TIMEDELTA
+        payload = {
+            "sub": str(user_id),
+            "type": "refresh",
+            "exp": exp,
+            "iat": iat,
+        }
+        return cls.encode(payload, RT_SECRET_KEY)
+    @classmethod
+    def create_access_token(cls, user_id: int):
+        iat = datetime.now(timezone.utc)
+        exp = iat + cls.ACCESS_TOKEN_EXPIRE_TIMEDELTA
+        payload = {
+            "sub": str(user_id),
+            "type": "access",
+            "exp": exp,
+            "iat": iat,
+        }
+        return cls.encode(payload, AT_SECRET_KEY)
+
+    @classmethod
+    def get_user_id_from_refresh_token(cls, token: str) -> int|None:
+        payload = cls.decode(token, RT_SECRET_KEY)
+        if not payload:
+            return None
+
+        if payload["type"] != "refresh":
+            return None
+
+        exp = datetime.fromtimestamp(payload["exp"], tz=timezone.utc)
+        if exp < datetime.now(timezone.utc):
+            return None
+
+        return int(payload["sub"])
+
+    @classmethod
+    def get_user_id_from_access_token(cls, token: str) -> int|None:
+        payload = cls.decode(token, AT_SECRET_KEY)
+        if not payload:
+            return None
+
+        if payload["type"] != "access":
+            return None
+        exp = datetime.fromtimestamp(payload["exp"], tz=timezone.utc)
+        if exp < datetime.now(timezone.utc):
+            return None
+
+        return int(payload["sub"])
+
+security = HTTPBearer()
 
 class TransactionRequest(BaseModel):
     sender: str
