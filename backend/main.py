@@ -1,4 +1,5 @@
 import os
+import hashlib
 from sys import prefix
 from datetime import datetime, timedelta, timezone
 from fastapi import FastAPI, status, HTTPException, Depends, security
@@ -83,7 +84,15 @@ class Tokens:
 
         return int(payload["sub"])
 
-security = HTTPBearer()
+bearer_scheme = HTTPBearer()
+
+def get_password_hash(password: str) -> str:
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return get_password_hash(plain_password) == hashed_password
+
+
 
 class TransactionRequest(BaseModel):
     sender: str
@@ -98,8 +107,54 @@ class TransactionResponse (BaseModel):
     model_config = {"from_attributes": True}
 class TransactionUpdateRequest(BaseModel):
     status: TransactionStatus
+
+class UserCreate(BaseModel):
+    username: str
+    password: str
+
+class TokenResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
 app = FastAPI(root_path = '/api')
 
+@app.post(
+    '/register',
+    response_model=TokenResponse,
+    status_code = status.HTTP_201_CREATED,
+)
+def register_user(user: UserCreate, db: Session = Depends(get_db)):
+    if get_user_by_username(db, user.username):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Пользователь уже зарегестрирован'
+        )
+    hashed_pwd = get_password_hash(user.password)
+    new_user = create_user(db, user.username, hashed_pwd)
+
+    access_token = Tokens.create_access_token(new_user.id)
+    refresh_token = Tokens.create_refresh_token(new_user.id)
+
+    return TokenResponse(access_token = access_token, refresh_token = refresh_token)
+
+@app.post(
+    '/login',
+    response_model=TokenResponse,
+    status_code=status.HTTP_302_FOUND
+)
+def login_user(user: UserCreate, db: Session = Depends(get_db)):
+    db_user = get_user_by_username(db, user.username)
+
+    if not db_user or not verify_password(user.password, db_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Пользователь не найден"
+        )
+
+    access_token = Tokens.create_access_token(db_user.id)
+    refresh_token = Tokens.create_refresh_token(db_user.id)
+
+    return TokenResponse(access_token = access_token, refresh_token = refresh_token)
 @app.post(
     '/transactions',
     response_model = TransactionResponse,
